@@ -129,7 +129,7 @@ export const BannerCreator = () => {
                 dangerouslySetInnerHTML={{ __html: svg }}
                 className='w-full h-full *:w-full flex justify-center items-center'
               />
-            : <>Loading...</>
+            : <Loading />
             }
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -137,3 +137,8 @@ export const BannerCreator = () => {
     </Form>
   )
 }
+
+const Loading = () =>
+  <div className='w-full h-full flex justify-center items-center text-center'>
+    미리보기 로딩 중...
+  </div>
