@@ -63,7 +63,7 @@ export function createBannerSVG(tokenData: TokensResult, {
         continue
       }
 
-      token.color ||= baseColor
+      const color = token.color || baseColor
 
       let attr = ''
       switch (token.fontStyle) {
@@ -88,7 +88,7 @@ export function createBannerSVG(tokenData: TokensResult, {
           break
       }
 
-      if (lastToken && token.color == lastToken.color && token.fontStyle == lastToken.fontStyle) {
+      if (lastToken && color == lastToken.color && token.fontStyle == lastToken.fontStyle) {
         lastToken.content += whitespace + token.content
         whitespace = ''
         continue
@@ -100,12 +100,12 @@ export function createBannerSVG(tokenData: TokensResult, {
         dy = 0
       }
 
-      if (token.color) {
-        const count = (colorCountTable.get(token.color) || 0) + 1
-        colorCountTable.set(token.color, count)
+      if (color) {
+        const count = (colorCountTable.get(color) || 0) + 1
+        colorCountTable.set(color, count)
 
         if (count > mostUsedColorCount) {
-          mostUsedColor = token.color
+          mostUsedColor = color
           mostUsedColorCount = count
         }
       }
@@ -114,7 +114,7 @@ export function createBannerSVG(tokenData: TokensResult, {
         content: whitespace + token.content,
         attr,
         fontStyle: token.fontStyle,
-        color: token.color,
+        color,
       })
 
       whitespace = ''
