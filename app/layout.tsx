@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import './globals.css'
 
 const notoSansKR = Noto_Sans_KR({
-  subsets: ['latin'],
+  subsets: [],
 })
 
 const bodyClass = cn(

@@ -1,25 +1,17 @@
-import memoize from 'lodash.memoize'
-import {
-  codeToTokens,
-  type BundledLanguage,
-  type BundledTheme,
-  type CodeToTokensOptions,
-  type TokensResult,
-} from 'shiki'
-
-export type TokenOptions = CodeToTokensOptions<BundledLanguage, BundledTheme>
-
-export const createTokenData = memoize(codeToTokens, (code, options) => JSON.stringify([code, options]))
+import type { TokensResult } from './highlighter'
 
 export interface BannerOptions {
-  paddingX: number
-  paddingY: number
-  maxWidth: number
+  paddingX?: number
+  paddingY?: number
+  maxWidth?: number
+
   fontSize: number
-  fontFamily: string
   lineHeight: number
-  speed: number
+  fontFamily: string
+
+  speed?: number
   outHeight: number
+  baseColor?: string
 }
 
 const escapeHTML = (text: string) =>
@@ -34,6 +26,7 @@ const escapeAttr = (attr: string) =>
 interface TspanSVG {
   content: string
   attr: string
+  fontStyle?: number
   color?: string
 }
 
@@ -41,22 +34,26 @@ const base        = '0123456789abcdefghijklmnop'
 const identifiers = 'etaoinsrhdlucmfywgpbvkxqjz'
 
 export function createBannerSVG(tokenData: TokensResult, {
-  paddingX,
-  paddingY,
+  paddingX = 0,
+  paddingY = 0,
   maxWidth,
+
   fontSize,
   fontFamily,
   lineHeight,
+
   speed,
   outHeight,
+  baseColor,
 }: BannerOptions) {
   const height = tokenData.tokens.length * lineHeight
 
   let mostUsedColorCount = 0, mostUsedColor = '', dy = fontSize, firstDy: number | undefined
+  let hasItalic = false, hasBold = false, hasUnderline = false, hasStrikethrough = false
   const tspanSVGList: TspanSVG[] = [], colorCountTable = new Map<string, number>()
 
   for (const line of tokenData.tokens) {
-    let isFirstInLine = true, whitespace = '', lastToken: TspanSVG | undefined
+    let whitespace = '', lastToken: TspanSVG | undefined
 
     for (const token of line) {
       // 현재 토큰이 쌩 공백이면 whitespace에만 추가한다.
@@ -66,18 +63,41 @@ export function createBannerSVG(tokenData: TokensResult, {
         continue
       }
 
-      if (lastToken && token.color == lastToken.color) {
+      token.color ||= baseColor
+
+      let attr = ''
+      switch (token.fontStyle) {
+        case 1:
+          attr += ` r=""`
+          hasItalic = true
+          break
+
+        case 2:
+          attr += ` cx=""`
+          hasBold = true
+          break
+
+        case 4:
+          attr += ` cy=""`
+          hasUnderline = true
+          break
+
+        case 8:
+          attr += ` rx=""`
+          hasStrikethrough = true
+          break
+      }
+
+      if (lastToken && token.color == lastToken.color && token.fontStyle == lastToken.fontStyle) {
         lastToken.content += whitespace + token.content
         whitespace = ''
         continue
       }
 
-      let attr = ''
-      if (isFirstInLine) {
-        if (firstDy == undefined) firstDy = dy
+      if (!lastToken) {
+        if (firstDy == null) firstDy = dy
         else attr += ` x="0" dy="${dy}"`
         dy = 0
-        isFirstInLine = false
       }
 
       if (token.color) {
@@ -90,7 +110,13 @@ export function createBannerSVG(tokenData: TokensResult, {
         }
       }
 
-      tspanSVGList.push(lastToken = { content: whitespace + token.content, attr, color: token.color })
+      tspanSVGList.push(lastToken = {
+        content: whitespace + token.content,
+        attr,
+        fontStyle: token.fontStyle,
+        color: token.color,
+      })
+
       whitespace = ''
     }
 
@@ -124,7 +150,7 @@ export function createBannerSVG(tokenData: TokensResult, {
 
   firstDy ||= 0
 
-  const duration = (height + paddingY * 2 - outHeight) / speed
+  const duration = speed ? (height + paddingY * 2 - outHeight) / speed : 0
   const hasAnimation = duration > 0 || ''
 
   const textStyle = ''
@@ -133,9 +159,13 @@ export function createBannerSVG(tokenData: TokensResult, {
   + `translate:var(--e)${paddingY + firstDy}px;`
   + `font:${fontSize}px ${escapeHTML(fontFamily)};`
   + `white-space:pre;`
-  + `--e:max(calc(50% - ${maxWidth / 2}px),${paddingX}px)`
+  + `--e:${maxWidth != null ? `max(calc(50% - ${maxWidth / 2}px),${paddingX}px)` : `${paddingX}px`}`
 
   const sheet = colorMapSheet
+  + (hasItalic ? `[r]{font-style:italic}` : '')
+  + (hasBold ? `[cx]{font-weight:700}` : '')
+  + (hasUnderline ? `[cy]{text-decoration:underline}` : '')
+  + (hasStrikethrough ? `[rx]{text-decoration:line-through}` : '')
   + `text{${textStyle}}`
   + (hasAnimation && ''
   +   `@keyframes e{`
