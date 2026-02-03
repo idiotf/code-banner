@@ -142,10 +142,8 @@ export function createBannerSVG(tokenData: TokensResult, {
   }).join('')
 
   const colorMapSheet =
-    colorMapTable
-      .entries()
+    [...colorMapTable]
       .map(([color, id]) => `[d=${escapeHTML(id)}]{fill:${escapeHTML(color.toLowerCase())}}`)
-      .toArray()
       .join('')
 
   firstDy ||= 0
