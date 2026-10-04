@@ -154,7 +154,7 @@ export function createBannerSVG(tokenData: TokensResult, {
   const textStyle = ''
   + (hasAnimation && `animation:e ${duration}s infinite linear;`)
   + (mostUsedColor && `fill:${escapeHTML(mostUsedColor.toLowerCase())};`)
-  + `translate:var(--e)${paddingY + firstDy}px;`
+  + `transform:translate(var(--e),${paddingY + firstDy}px);`
   + `font:${fontSize}px ${escapeHTML(fontFamily)};`
   + `white-space:pre;`
   + `--e:${maxWidth != null ? `max(calc(50% - ${maxWidth / 2}px),${paddingX}px)` : `${paddingX}px`}`
@@ -167,7 +167,7 @@ export function createBannerSVG(tokenData: TokensResult, {
   + `text{${textStyle}}`
   + (hasAnimation && ''
   +   `@keyframes e{`
-  +     `to{translate:var(--e)${outHeight - height - paddingY + firstDy}px}`
+  +     `to{transform:translate(var(--e),${outHeight - height - paddingY + firstDy}px)}`
   +   `}`
   + '')
 
