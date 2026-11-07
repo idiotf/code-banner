@@ -18,6 +18,7 @@ const escapeHTML = (text: string) =>
   text
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
+    .replaceAll(']]>', ']]&gt;')
 
 const escapeAttr = (attr: string) =>
   attr
